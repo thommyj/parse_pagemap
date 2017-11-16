@@ -2,13 +2,17 @@
 Parse /proc/&lt;pid>/map, corresponding pagemap, kpagemap and kpagecnt  and list all mappings
 
 usage parse_pagemap  [--combine] <pid>
+
 when specifying combine pages with the same mapping and attributes will be combined to one row
 
 compile with
-gcc parse_pagemap.c -o parse_pagemap
+
+>>gcc parse_pagemap.c -o parse_pagemap
 
 tested on linux 4.4 x86 and linux 4.9.0 arm64
+
 example output
+
 ./parse_pagemap 719 | head
 
 vaddr size pfn type exclusive flags mappings name
