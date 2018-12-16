@@ -89,10 +89,9 @@ void traverse_pageinfo(struct map_info *map)
 	long pagesz = sysconf(_SC_PAGESIZE);
 	unsigned long tmpaddr;
 	struct page_info prev_pginfo = {0,0,0,0,0,0,0,0};
-	ptrdiff_t sec_start = 0;
-	int first_print = 1;
+	ptrdiff_t sec_start = map->start;
 
-	for (tmpaddr = map->start; tmpaddr < map->end; tmpaddr += pagesz) {
+	for (tmpaddr = map->start; tmpaddr <= map->end; tmpaddr += pagesz) {
 		struct page_info pginfo = {0,0,0,0,0,0,0,0};
 		uint64_t entry;
 
@@ -127,15 +126,12 @@ void traverse_pageinfo(struct map_info *map)
 				perror("unable to read kpagecnt");
 			} 
 		}
-		//if first time, nothing to do than to save this pginfo until
-		//next loop
-		if(first_print) {
-			sec_start = tmpaddr;
-			first_print = 0;
-		}
 		if(print_all_pages) {
 			print_section(tmpaddr, pagesz, &pginfo, map);
-		}else if(!page_info_cmp(&prev_pginfo, &pginfo)) {
+		/* print if not the same attribues as previous. Never print first time unless
+		   first time is also the last. Always print the last iteration */
+		}else if((!page_info_cmp(&prev_pginfo, &pginfo) && tmpaddr != map->start) ||
+			tmpaddr == map->end) {
 			//so this one differs, print the previous and
 			//save this
 			print_section(sec_start, tmpaddr - sec_start, &prev_pginfo, map);
@@ -144,9 +140,9 @@ void traverse_pageinfo(struct map_info *map)
 		}
 		prev_pginfo = pginfo;
 	}
-	//print last one if have tried to summarize
+	//print last one if have tried to summarize (and not just printed)
 	//if not, this has already been printed
-	if(!print_all_pages) {
+	if(!print_all_pages)  {
 		print_section(sec_start, tmpaddr - sec_start, &prev_pginfo, map);
 	}
 }
